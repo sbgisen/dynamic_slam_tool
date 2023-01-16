@@ -34,11 +34,11 @@ include_directories(
 add_library(dst_lib src/MovingObjectRemoval.cpp include/MOR/MovingObjectRemoval.h include/MOR/IncludeAll.h)
 target_link_libraries(dst_lib ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
-add_executable(mov_i src/internal_sync_test.cpp src/component_clustering.cpp src/DBSCAN_clustering.cpp)
-target_link_libraries(mov_i dst_lib)
+add_executable(mov_internal src/internal_sync_node.cpp src/component_clustering.cpp src/DBSCAN_clustering.cpp)
+target_link_libraries(mov_internal dst_lib)
 
-add_executable(mov_e src/external_sync_test.cpp src/component_clustering.cpp src/DBSCAN_clustering.cpp)
-target_link_libraries(mov_e dst_lib)
+add_executable(mov_external src/external_sync_node.cpp src/component_clustering.cpp src/DBSCAN_clustering.cpp)
+target_link_libraries(mov_external dst_lib)
 
-add_executable(mov_e2 src/external_sync_test2.cpp src/component_clustering.cpp src/DBSCAN_clustering.cpp)
-target_link_libraries(mov_e2 dst_lib)
+add_executable(mov_external_fixed src/external_sync_fixed_node.cpp src/component_clustering.cpp src/DBSCAN_clustering.cpp)
+target_link_libraries(mov_external_fixed dst_lib)

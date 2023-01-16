@@ -2,6 +2,6 @@
 <!-- -*- mode: XML -*- -->
 <launch>
    <rosparam command="load" ns="dynamic_slam_tool" file="$(find dynamic_slam_tool)/config/velodyne_vlp16.yaml"/>
-   <node	name= "dynamic_slam_tool" pkg= "dynamic_slam_tool" type="mov_e2" output= "screen" required = "true"/>
+   <node	name= "dynamic_slam_tool" pkg= "dynamic_slam_tool" type="mov_external_fixed" output= "screen" required = "true"/>
    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find dynamic_slam_tool)/rviz/output.rviz"/>
 </launch>
