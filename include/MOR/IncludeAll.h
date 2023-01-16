@@ -37,11 +37,9 @@ using namespace std;
 
 #define VISUALIZE 
 /*This defination flag helps to visualize the moving cluster and individual clusters detected
-by the algorithm此定义标志有助于可视化算法检测到的移动簇和单个簇*/
+by the algorithm*/
 
 //#define INTERNAL_SYNC
 /*This defination flag turns on the internal message synchronizer to subscribe to the topics given
 by the config file. If the VISUALIZE flag is defined, it publishes the filtered pointcloud after 
-removing the moving objects along with the detection results, on topics defined in config file.
-此定义标志打开内部消息同步器以订阅配置文件给定的主题。如果定义了VISUALIZE标志，它将在移
-除移动对象和检测结果后，在配置文件中定义的主题上发布过滤后的点云*/
+removing the moving objects along with the detection results, on topics defined in config file.*/

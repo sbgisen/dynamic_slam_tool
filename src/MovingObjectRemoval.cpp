@@ -117,7 +117,7 @@ int id, std::string f_id,int colour){
   line_list.id = id;
   line_list.type = visualization_msgs::Marker::LINE_LIST; 
 
-  //LINE_LIST markers use only the x component of scale, for the line width  仅将比例的x分量用于线宽
+  //LINE_LIST markers use only the x component of scale, for the line width
   line_list.scale.x = 0.01;
   // Points are green
   if(colour == 1){line_list.color.g = 1.0f;}//绿色
@@ -173,8 +173,7 @@ void MovingObjectDetectionCloud::groundPlaneRemoval(float x,float y,float z)
     pass.setFilterLimits(-y, y);
     pass.filter(*raw_cloud);
     /*The pointcloud becomes more sparse as the distance of sampling from the lidar increases.
-    So it has been trimmed in X,Y and Z directions
-    随着距离激光雷达采样距离的增加，点云变得更加稀疏。所以它在X、Y和Z方向被修剪*/
+    So it has been trimmed in X,Y and Z directions*/
 
     pcl::CropBox<pcl::PointXYZI> cropBoxFilter (true);//类CropBox过滤掉在用户给定立方体内的点云数据
     cropBoxFilter.setInputCloud(raw_cloud);
@@ -185,8 +184,7 @@ void MovingObjectDetectionCloud::groundPlaneRemoval(float x,float y,float z)
     //cropBoxFilter.setNegative(true);//false是只将立方体内的点保留，默认false
     cropBoxFilter.filter(*cloud); //'cloud' stores the pointcloud after removing ground plane
     gp_indices = cropBoxFilter.getRemovedIndices();
-    /*ground plane is removed from 'raw_cloud' and their indices are stored in gp_indices
-    gp_indices内存储地平面的索引，CropBox使用该索引将raw_cloud过滤至无地面的cloud*/
+    /*ground plane is removed from 'raw_cloud' and their indices are stored in gp_indices*/
     //---------------------添加的----------------------------
     pcl::toROSMsg(*cloud, output_rgp);
     //output_rgp.header.frame_id = "gpr";
@@ -266,12 +264,12 @@ void MovingObjectDetectionCloud::groundPlaneRemoval(float x,float y)
       }
     }
 
-    std::unordered_map<float,std::vector<int>> bins;//hash table类型变量
+    std::unordered_map<float,std::vector<int>> bins;//hash table
     /*a bin holds all points having Z coordinate within a specific range*/
     
     for(int i=0;i<f_cloud->points.size();i++)
     {
-      float key = (float)((int)(f_cloud->points[i].z*10))/bin_gap; //bin gap for the binning step //保留一位小数
+      float key = (float)((int)(f_cloud->points[i].z*10))/bin_gap; //bin gap for the binning step
       bins[key].push_back(i);
     }
     float tracked_key = bins.begin()->first;
@@ -372,7 +370,7 @@ void MovingObjectDetectionCloud::computeClusters(float distance_threshold, std::
   	for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   	{
   		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_cluster(new pcl::PointCloud<pcl::PointXYZI>);
-       //temporary variable临时变量
+       //temporary variable
 	    for (std::vector<int>::const_iterator pit = it->indices.begin(); pit != it->indices.end(); ++pit)
 	    {
         #ifdef VISUALIZE
@@ -389,7 +387,7 @@ void MovingObjectDetectionCloud::computeClusters(float distance_threshold, std::
 	    clusters.push_back(cloud_cluster); //add the cluster to a collection vector
 
 	    Eigen::Vector4d temp;
-	    pcl::compute3DCentroid(*cloud_cluster, temp); //compute centroid of the cluster计算质心
+	    pcl::compute3DCentroid(*cloud_cluster, temp); //compute centroid of the cluster
 	    pcl::PointXYZ centroid;
 	    centroid.x = temp[0]; centroid.y = temp[1]; centroid.z = temp[2];
 	    centroid_collection->points.push_back(centroid); //add the centroid to a collection vector
@@ -402,13 +400,11 @@ void MovingObjectDetectionCloud::computeClusters(float distance_threshold, std::
   	for(int i=0;i<clusters.size();i++)
   	{
   		detection_results.push_back(false); 
-      /*assign the moving detection results for all clusters as false initially
-      最初将所有簇的移动检测结果指定为false*/
+      /*assign the moving detection results for all clusters as false initially*/
   	}
 
   #ifdef VISUALIZE 
-  /*visualize the clustering results if VISUALIZE flag is defined
-  如果定义了可视化标志，则可视化聚类结果*/
+  /*visualize the clustering results if VISUALIZE flag is defined*/
   cluster_collection->width = cluster_collection->points.size();
 	cluster_collection->height = 1;
 	cluster_collection->is_dense = true;
@@ -453,14 +449,11 @@ void MovingObjectDetectionMethods::calculateCorrespondenceCentroid(
   corr_est.setInputTarget(fc);
 	corr_est.determineReciprocalCorrespondences(*ufmp);
   //类CorrespondenceEstimation是确定目标和查询点集(或特征)之间的对应关系的基类
-  //输出两组点云之间对应点集合
-  /*euclidian distance based reciprocal correspondence (one to one correspondence)
-  基于欧几里得距离的相互对应（一对一对应*/
+  /*euclidian distance based reciprocal correspondence (one to one correspondence)*/
 
 	for(int j=0;j<ufmp->size();j++)//逐个检查前后两帧各对应聚类的体积是否匹配
   	{
-      /*filter the correspondences based on volume constraints and store in 'fmp'
-      根据体积限制过滤对应关系并存储在“fmp”中*/
+      /*filter the correspondences based on volume constraints and store in 'fmp'*/
 	    if(!volumeConstraint(c1[(*ufmp)[j].index_query],c2[(*ufmp)[j].index_match],volume_constraint))
 	    {
 	      continue;
@@ -477,9 +470,7 @@ pcl::CorrespondencesPtr mp,float resolution = 0.3f)
 {
   /*builds the octree representation of the source and destination clouds. finds the
   number of new points appearing in the destination cloud with respect to the source
-  cloud. repeats this for each pair of corresponding pointcloud clusters
-  构建源云和目标云的八叉树表示。查找目标云中相对于源云中出现的新点的数量。
-  对每对对应的点云群集重复此操作*/
+  cloud. repeats this for each pair of corresponding pointcloud clusters*/
 
   std::vector<double> changed;
   srand((unsigned int)time(NULL));//为使用rand产生随机数作前提
@@ -494,8 +485,7 @@ pcl::CorrespondencesPtr mp,float resolution = 0.3f)
 
     
     std::vector<int> newPointIdxVector;
-    /*stores the indices of the new points appearing in the destination cluster
-    存储目标群集中出现的新点的索引*/
+    /*stores the indices of the new points appearing in the destination cluster*/
 
     octree_cd.getPointIndicesFromNewVoxels(newPointIdxVector);//对比获得新增点的索引
     changed.push_back(newPointIdxVector.size());
@@ -511,9 +501,7 @@ pcl::CorrespondencesPtr mp)
 {
   /*finds the correspondence of points from source to destination pointcloud.filters the
   correspondences having distance within a specific distance range. repeats this for each
-  pair of corresponding pointcloud clusters
-  查找点从源到目标点云的对应关系。过滤距离在特定距离范围内的对应关系。
-  对每对对应的点云群集重复此操作*/
+  pair of corresponding pointcloud clusters*/
 
 	std::vector<double> estimates;
  	pcl::registration::CorrespondenceEstimation<pcl::PointXYZI, pcl::PointXYZI> corr_est;
@@ -564,21 +552,19 @@ MovingObjectRemoval::MovingObjectRemoval(ros::NodeHandle nh_,std::string config_
     odom_sub.subscribe(nh, input_odometry_topic, 1);
     sync.reset(new message_filters::Synchronizer<MySyncPolicy>(MySyncPolicy(10),pc_sub,odom_sub));
     sync->registerCallback(&MovingObjectRemoval::movingCloudObjectSubscriber, this);
-    /*internal message synchronization using ROS Approximate Time policy
-    使用ROS近似时间策略的内部消息同步*/
+    /*internal message synchronization using ROS Approximate Time policy*/
     #endif
 
     ca.reset(new MovingObjectDetectionCloud(gp_limit,gp_leaf,bin_gap,min_cluster_size,max_cluster_size)); //previous pointcloud frame
     cb.reset(new MovingObjectDetectionCloud(gp_limit,gp_leaf,bin_gap,min_cluster_size,max_cluster_size)); //current pointcloud frame (latest)
     mth.reset(new MovingObjectDetectionMethods(volume_constraint,pde_lb,pde_ub));
-    /*instantiate the shared pointers实例化共享指针*/
+    /*instantiate the shared pointers*/
 }
 
 //0.2 内部同步订阅服务器 INTERNAL_SYNC标志控制
 void MovingObjectRemoval::movingCloudObjectSubscriber(const sensor_msgs::PointCloud2ConstPtr& input, const nav_msgs::OdometryConstPtr& odm)
 {
-  /*subscriber for internal sync. works if INTERNAL_SYNC flag is defined
-  内部同步订阅服务器。如果定义了INTERNAL\u SYNC标志，则工作*/
+  /*subscriber for internal sync. works if INTERNAL_SYNC flag is defined*/
 
   clock_t begin_time = clock();
   std::cout<<"-----------------------------------------------------\n";
@@ -607,26 +593,21 @@ int MovingObjectRemoval::recurseFindClusterChain(int col,int track)
   information is obtained from the correspondence map buffer 'corrs_vec'. consistency in the 
   cluster chain is known using the result buffer 'res_vec'. returns -1 if consistency fails
   or else returns the index of the moving cluster in the cluster collection 'clusters' in
-  the latest pointcloud frame 'cb'
-  将对应映射缓冲区索引和结果缓冲区索引作为初始参数，并递归到缓冲区中所有可用的对应映射结束。
-  簇链信息从对应映射缓冲区“corrs_vec”获取。使用结果缓冲区“res_vec”可以知道集群链中的一致性。
-  如果一致性失败，则返回-1，否则返回最新点云框架“cb”中群集集合“clusters”中移动群集的索引*/
+  the latest pointcloud frame 'cb'*/
 
   if(col == corrs_vec.size())
   {
-    /*break condition for the recursion. return the index of the moving cluster
-    递归的中断条件。返回移动群集的索引*/
+    /*break condition for the recursion. return the index of the moving cluster*/
     return track;
   }
 
   for(int j=0;j<corrs_vec[col]->size();j++)
   {
-    /*search all the unit correspondeces within the correspondence map in 'col' index of the buffer
-    在缓冲区的“col”索引中的对应关系图中搜索所有单位对应关系*/
+    /*search all the unit correspondeces within the correspondence map in 'col' index of the buffer*/
     
     if((*corrs_vec[col])[j].index_query == track)
     {
-      /*correspondence map should have the key 'track'通信地图应具有关键“track”*/
+      /*correspondence map should have the key 'track'*/
 
       if(res_vec[col+1][(*corrs_vec[col])[j].index_match] == true)
       {
@@ -634,8 +615,7 @@ int MovingObjectRemoval::recurseFindClusterChain(int col,int track)
         映射索引在结果缓冲区中必须具有true值*/
 
         return recurseFindClusterChain(col+1,(*corrs_vec[col])[j].index_match);
-        /*if both key and mapped index have true positive value then move for the next correspondence
-        map in the buffer如果键和映射索引都具有真正值，则移动到缓冲区中的下一个对应映射*/
+        /*if both key and mapped index have true positive value then move for the next correspondence*/
       }
       else
       {
@@ -653,24 +633,20 @@ void MovingObjectRemoval::pushCentroid(pcl::PointXYZ pt)
 
 	for(int i=0;i<mo_vec.size();i++)
 	{
-    /*check if the moving centroid has already been added to the 'mo_vec' previously
-    检查之前是否已将移动质心添加到“mo_vec”*/
+    /*check if the moving centroid has already been added to the 'mo_vec' previously*/
 		double dist = sqrt(pow(pt.x-mo_vec[i].centroid.x,2)+pow(pt.y-mo_vec[i].centroid.y,2)+pow(pt.z-mo_vec[i].centroid.z,2));
 		if(dist<catch_up_distance)
 		{
-      /*if found a centroid close to the new moving centroid then return, as no additional 
-      action is required如果发现靠近新移动质心的质心，则返回，因为无需执行其他操作*/
+      /*if found a centroid close to the new moving centroid then return, as no additional*/
 			return;
 		}
 	}
 
 	MovingObjectCentroid moc(pt,static_confidence);//static_confidence=3
-  /*assign static confidence to 'moc' that determines it's persistance in 'mo_vec'
-  为“moc”分配静态置信度，以确定其在“mov_vec”中的持久性*/
+  /*assign static confidence to 'moc' that determines it's persistance in 'mo_vec'*/
 
 	mo_vec.push_back(moc);
-  /*if not present then add the new cluster centroid to the 'mo_vec'
-  如果不存在，则将新簇质心添加到“movec”*/
+  /*if not present then add the new cluster centroid to the 'mo_vec'*/
 }
 
 //7.在检测步骤之后获取新的对应关系图和结果向量，并更新缓冲区
@@ -678,17 +654,15 @@ void MovingObjectRemoval::checkMovingClusterChain(pcl::CorrespondencesPtr mp,std
 std::vector<bool> &res_cb)
 {
   /*gets new correspondence map and result vector after the detection step and updates the
-  buffers. it checks for new moving clusters and adds them to the 'mo_vec'
-  在检测步骤之后获取新的对应关系图和结果向量，并更新缓冲区。
-  它检查新的移动群集并将其添加到“mo_vec*/
+  buffers. it checks for new moving clusters and adds them to the 'mo_vec'*/
 
   corrs_vec.push_back(mp);
   if(res_vec.size()==0)
   {
-  //   res_vec.pop_back(); //deletes the top most result in the buffer删除缓冲区中最顶端的结果
+  //   res_vec.pop_back(); //deletes the top most result in the buffer
     res_vec.push_back(res_ca);
   }
-  // res_vec.push_back(res_ca); //updates the buffer with the latest result使用最新结果更新缓冲区
+  // res_vec.push_back(res_ca); //updates the buffer with the latest result
   res_vec.push_back(res_cb);
   // std::cout<<mo_vec.size()<<" "<<corrs_vec.size()<<" "<<res_vec.size()<<std::endl;
   if(res_vec.size() >= moving_confidence)//moving_confidence=4
@@ -698,8 +672,7 @@ std::vector<bool> &res_cb)
       if(res_vec[0][i] == true)
       {
         /*look to the historical data in the result buffer and check the clusters with true positive
-        value in the first result vector within the buffer
-        查看结果缓冲区中的历史数据，并检查缓冲区中第一个结果向量中具有真正值的聚类*/
+        value in the first result vector within the buffer*/
 
       int found_moving_index = recurseFindClusterChain(0,i);
         /*run the recursive test to find a potential cluster chain form the buffers
@@ -707,13 +680,12 @@ std::vector<bool> &res_cb)
 
         if(found_moving_index != -1)
         {
-          /*if found push the confirmed moving centroid into 'mo_vec'
-          如果找到，将确认的移动质心移入“mo_vec”*/
+          /*if found push the confirmed moving centroid into 'mo_vec'*/
           pushCentroid(cb->centroid_collection->points[found_moving_index]);
         }
       }
     }
-    corrs_vec.pop_front(); //delete old values from the buffer将前第5帧从队列中删除
+    corrs_vec.pop_front(); //delete old values from the buffer
     res_vec.pop_front();
   }
 }
@@ -724,7 +696,7 @@ void MovingObjectRemoval::pushRawCloudAndPose(pcl::PCLPointCloud2 &in_cloud,geom
 {
   /*recieves the synchronized incoming data and runs detection methods*/
 
-  ca = cb; //update previous frame with the current frame 将前一帧计算结果cb传递至ca保存
+  ca = cb; //update previous frame with the current frame
   cb.reset(new MovingObjectDetectionCloud(gp_limit,gp_leaf,bin_gap,min_cluster_size,max_cluster_size)); 
   //释放原来的空间 默认delete,cb清零
 
@@ -743,12 +715,12 @@ void MovingObjectRemoval::pushRawCloudAndPose(pcl::PCLPointCloud2 &in_cloud,geom
   tf::poseMsgToTF(pose,cb->ps); //load latest pose
   
 
-  cb->groundPlaneRemoval(trim_x,trim_y,trim_z); //ground plane removal (hard coded)地面去除 硬编码
-  //cb->groundPlaneRemoval(trim_x,trim_y); //groud plane removal (voxel covariance)地面去除 体素协方差
+  cb->groundPlaneRemoval(trim_x,trim_y,trim_z); //ground plane removal (hard coded)
+  //cb->groundPlaneRemoval(trim_x,trim_y); //groud plane removal (voxel covariance)
   gpr.publish(cb->output_rgp);
 
   cb->computeClusters(ec_distance_threshold,"single_cluster"); 
-  /*compute clusters within the lastet pointcloud计算最新点云中的聚类*/
+  /*compute clusters within the lastet pointcloud*/
 
   showDistance(cb->centroid_collection);
   //显示聚类中心的距离
@@ -762,25 +734,22 @@ void MovingObjectRemoval::pushRawCloudAndPose(pcl::PCLPointCloud2 &in_cloud,geom
     marker2_pub.publish(mark_cluster2(cb->clusters[i],i,debug_fid,1));
   }
 
-  cb->init = true; //confirm the frame for detection确认检测框架
+  cb->init = true; //confirm the frame for detection
 
   if(ca->init  == true && cb->init == true)
   {
     tf::Transform t = (cb->ps).inverseTimes(ca->ps); 
     /*calculate transformation matrix between previous and current pose. 't' transforms a point
-    from the previous pose to the current pose计算上一个姿势和当前姿势之间的变换矩阵。”t’
-    将点从上一个姿势转换为当前姿势*/
+    from the previous pose to the current pose*/
 
 
     pcl::PointCloud<pcl::PointXYZ> temp = *ca->centroid_collection;
 	  pcl_ros::transformPointCloud(temp,*ca->centroid_collection,t);
-    /*transform the previous centroid collection with respect to 't'
-    相对于“t”变换以前的质心集合*/
+    /*transform the previous centroid collection with respect to 't'*/
 
 	for(int i=0;i<ca->clusters.size();i++)
 	{
-    /*transform the clusters in the collection vector of the previous frame with respect to 't'
-    根据“t”变换前一帧集合向量中的簇*/
+    /*transform the clusters in the collection vector of the previous frame with respect to 't'*/
 
 		pcl::PointCloud<pcl::PointXYZI> temp;
 		temp = *ca->clusters[i];
@@ -795,14 +764,11 @@ void MovingObjectRemoval::pushRawCloudAndPose(pcl::PCLPointCloud2 &in_cloud,geom
   #endif
   		
 	pcl::CorrespondencesPtr mp(new pcl::Correspondences()); 
-  /*correspondence map between the cluster centroids of previous and current frame
-   前一帧与当前帧簇质心的对应关系图*/
+  /*correspondence map between the cluster centroids of previous and current frame*/
 	  	
 	//cluster correspondence methods (Global)聚类对应方法（全局）
 	mth->calculateCorrespondenceCentroid(ca->clusters,cb->clusters,ca->centroid_collection,cb->centroid_collection,mp,0.1);
-	/*calculate euclidian correspondence and apply the voulme constraint
-  计算欧几里得对应关系并应用voulme约束
-  对于体积差超出阈值的聚类点云的对应关系在mp中删除*/
+	/*calculate euclidian correspondence and apply the voulme constraint*/
 
 	//moving object detection methods (Local)运动目标检测方法（局部）
   std::vector<double> param_vec;
@@ -816,8 +782,7 @@ void MovingObjectRemoval::pushRawCloudAndPose(pcl::PCLPointCloud2 &in_cloud,geom
     param_vec = mth->getClusterPointcloudChangeVector(ca->clusters,cb->clusters,mp,0.1);
     //向量param_vec存储相对于前帧各对应聚类点云中新增点的数量
   }
-  /*determine the movement scores for the corresponding clusters
-  确定相应集群的移动分数*/
+  /*determine the movement scores for the corresponding clusters*/
   // int id=1;
   // static int ct = 0;
 	for(int j=0;j<mp->size();j++)
@@ -846,16 +811,14 @@ void MovingObjectRemoval::pushRawCloudAndPose(pcl::PCLPointCloud2 &in_cloud,geom
 			//ca->detection_results[(*mp)[j].index_query] = false;
 			cb->detection_results[(*mp)[j].index_match] = false;
 		}
-    /*assign the boolean results acording to thresholds. true for moving and false for static cluster
-    根据阈值分配布尔结果。对于移动集群为true，对于静态集群为false*/
+    /*assign the boolean results acording to thresholds. true for moving and false for static cluster*/
 	}
 	// std::cout<<ct<<std::endl;
   //显示速度
   showV(ca->centroid_collection,cb->centroid_collection,mp,cb->detection_results);
 
 	checkMovingClusterChain(mp,ca->detection_results,cb->detection_results);
-  /*submit the results to update the buffers
-  提交结果以更新缓冲区*/
+  /*submit the results to update the buffers*/
     /* static double start, time_taken,end;
     start = ros::Time::now().toSec();
     end = ros::Time::now().toSec();
@@ -871,19 +834,16 @@ void MovingObjectRemoval::pushRawCloudAndPose(pcl::PCLPointCloud2 &in_cloud,geom
 bool MovingObjectRemoval::filterCloud(pcl::PCLPointCloud2 &out_cloud,std::string f_id)
 {
   /*removes the moving objects from the latest pointcloud and puts the filtered cloud in 'output'.
-  removes the static cluster centroids from 'mo_vec'
-  从最新的点云中删除移动对象，并将过滤后的云置于“输出”中。从“mo_vec”中删除静态簇质心
-  */
+  removes the static cluster centroids from 'mo_vec'*/
 
 	xyz_tree.setInputCloud(cb->centroid_collection); 
   /*use kdtree for searching the moving cluster centroid within 'centroid_collection' of the
-  latest frame使用kdtree在最新帧的“centroid_collection”中搜索移动的群集质心*/
+  latest frame*/
 
 	float rd=0.8,gd=0.1,bd=0.4;int id = 1; //colour variables for visualizing red bounding box
   float rd01=0,gd01=1.0,bd01=0;
   pcl::PointIndicesPtr moving_points(new pcl::PointIndices);
-  /*stores the indices of the points belonging to the moving clusters within 'cloud'
-  存储属于“cloud”中移动簇的点的索引*/
+  /*stores the indices of the points belonging to the moving clusters within 'cloud'*/
 
   // static int ct=0;
   // ct+=mo_vec.size();
@@ -891,14 +851,13 @@ bool MovingObjectRemoval::filterCloud(pcl::PCLPointCloud2 &out_cloud,std::string
   std::vector<int> movingclusterid;
 	for(int i=0;i<mo_vec.size();i++)
 	{
-    /*iterate through all the moving cluster centroids遍历所有移动的簇质心*/
+    /*iterate through all the moving cluster centroids*/
 
 		std::vector<int> pointIdxNKNSearch(1);
 		std::vector<float> pointNKNSquaredDistance(1);
 		if(xyz_tree.nearestKSearch(mo_vec[i].centroid, 1, pointIdxNKNSearch, pointNKNSquaredDistance) > 0 )
 		{
-      /*search for the actual centroid in the centroid collection of the latest frame
-      在最新帧的质心集合中搜索实际质心*/
+      /*search for the actual centroid in the centroid collection of the latest frame*/
 
       #ifdef VISUALIZE //visualize bounding box to show the moving cluster if VISUALIZE flag is defined
 			marker_pub.publish(mark_cluster2(cb->clusters[pointIdxNKNSearch[0]],id++,debug_fid,2));
@@ -909,21 +868,18 @@ bool MovingObjectRemoval::filterCloud(pcl::PCLPointCloud2 &out_cloud,std::string
       
       for(int j=0;j<cb->cluster_indices[pointIdxNKNSearch[0]].indices.size();j++)
       {
-        /*add the indices of the moving clusters in 'cloud' to 'moving_points'
-        将“cloud”中移动簇的索引添加到“moving_points”*/
+        /*add the indices of the moving clusters in 'cloud' to 'moving_points'*/
         moving_points->indices.push_back(cb->cluster_indices[pointIdxNKNSearch[0]].indices[j]);
       }
 
 			if(cb->detection_results[pointIdxNKNSearch[0]] == false || pointNKNSquaredDistance[0]>leave_off_distance)
 			{
         /*decrease the moving confidence if the cluster is found to be static in the latest results or
-        if the cluster dosen't appear in the current frame
-      如果在最新结果中发现群集是静态的，或者如果群集没有出现在当前帧中，则降低移动置信度*/
+        if the cluster dosen't appear in the current frame*/
 
 				if(mo_vec[i].decreaseConfidence())
 				{
-          /*remove the moving centroid from 'mo_vec' if the confidence reduces to 0
-          如果置信度降至0，则从“mo_vec”中删除移动质心*/
+          /*remove the moving centroid from 'mo_vec' if the confidence reduces to 0*/
 					mo_vec.erase(mo_vec.begin()+i);
 					i--;
 				}
@@ -931,10 +887,9 @@ bool MovingObjectRemoval::filterCloud(pcl::PCLPointCloud2 &out_cloud,std::string
 			else
 			{
 				mo_vec[i].centroid = cb->centroid_collection->points[pointIdxNKNSearch[0]];
-        /*update the moving centroid with the latest centroid of the moving cluster
-        使用移动簇的最新质心更新移动质心*/
+        /*update the moving centroid with the latest centroid of the moving cluster*/
 
-				mo_vec[i].increaseConfidence(); //increase the moving confidence提高移动置信度
+				mo_vec[i].increaseConfidence(); //increase the moving confidence
 			}
 			id++;
 		}
@@ -958,8 +913,7 @@ bool MovingObjectRemoval::filterCloud(pcl::PCLPointCloud2 &out_cloud,std::string
   extract.setIndices(moving_points);
   extract.setNegative(true);
   extract.filter(*f_cloud);
-  /*extract the moving clusters from 'cloud' and assign the filtered cloud to 'f_cloud'
-  从“cloud”中提取移动的群集，并将过滤后的云指定给“f_cloud”*/
+  /*extract the moving clusters from 'cloud' and assign the filtered cloud to 'f_cloud'*/
 
   for(int i=0;i<cb->gp_indices->size();i++)
   {
@@ -974,9 +928,9 @@ bool MovingObjectRemoval::filterCloud(pcl::PCLPointCloud2 &out_cloud,std::string
   pcl::toPCLPointCloud2(*f_cloud,out_cloud);
   pcl_conversions::fromPCL(out_cloud, output);
   output.header.frame_id = f_id;
-  /*assign the final filtered cloud to the 'output'将最终过滤的云指定给“output”*/
+  /*assign the final filtered cloud to the 'output'*/
 
-  return true; //confirm that a new filtered cloud is available确认新的过滤云可用
+  return true; //confirm that a new filtered cloud is available
 }
 
 

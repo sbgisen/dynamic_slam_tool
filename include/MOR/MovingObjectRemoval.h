@@ -4,7 +4,7 @@
 typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, nav_msgs::Odometry> MySyncPolicy; //for message synchronization
 
 //'xyz' -> refers to the variable with name xyz
-//shared pointers are used for autometic garbage collection共享指针用于自动垃圾收集
+//shared pointers are used for autometic garbage collection
 
 
 struct MovingObjectDetectionCloud
@@ -12,12 +12,11 @@ struct MovingObjectDetectionCloud
 	/*
 	A structure for holding incoming pointcloud and corresponding odometry. It has functions for 
 	pointcloud pre-processing, ground plane removal and euclidian clustering. It aslo stores the
-	moving object detection results after computation.一种用于容纳输入点云和相应里程计的结构。
-	它具有点云预处理、地平面去除和欧几里得聚类等功能。它还存储计算后的运动目标检测结果。
+	moving object detection results after computation.
 	*/
 	float gp_limit,gp_leaf,bin_gap;
 	long min_cluster_size,max_cluster_size;
-	/*configuration variables配置变量*/
+	/*configuration variables*/
     
 
 	pcl::PointCloud<pcl::PointXYZI>::Ptr raw_cloud,cloud,cluster_collection;
@@ -29,38 +28,31 @@ struct MovingObjectDetectionCloud
 	/* 添加 */
 
 	std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> clusters;
-	/*vector to store the individual detected clusters
-	用于存储单个检测到的群集的向量*/
+	/*vector to store the individual detected clusters*/
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr centroid_collection;
-	/*stores the centroid of all the detected clusters. indexing is same as 'clusters'
-	存储所有检测到的簇的质心。索引与“clusters”相同*/
+	/*stores the centroid of all the detected clusters. indexing is same as 'clusters'*/
 
 	std::vector<pcl::PointIndices> cluster_indices;
 	
-	/*vector to store the indices of all the detected clusters in 'cloud'
-	将所有检测到的群集的索引存储在“云”中的向量*/
+	/*vector to store the indices of all the detected clusters in 'cloud'*/
 
 	pcl::IndicesConstPtr gp_indices;
-	/*indices of the points of ground plane in 'raw_cloud' which gets removed wile extracting 'cloud'
-	“raw_cloud”中通过提取“cloud”删除的地平面点的索引*/
+	/*indices of the points of ground plane in 'raw_cloud' which gets removed wile extracting 'cloud'*/
 
 	std::vector<bool> detection_results; 
-	/*results of moving object detection. indexing is same as 'clusters'
-	运动目标检测结果。索引与“clusters”相同*/
+	/*results of moving object detection. indexing is same as 'clusters'*/
 
 	tf::Pose ps;
-	/*stores the 6D pose at which the pointloud was captured.
-	存储捕捉pointloud时的6D姿势*/
+	/*stores the 6D pose at which the pointloud was captured.*/
 	
-	bool init;//helps in synchronization有助于同步
+	bool init;//helps in synchronization
 
 	MovingObjectDetectionCloud(float gp_lm,float gp_lf,float bin_g,long min_cl_s,long max_cl_s)
 	:gp_limit(gp_lm),gp_leaf(gp_lf),bin_gap(bin_g),min_cluster_size(min_cl_s),max_cluster_size(max_cl_s)
 	//初始化类成员（成员初始化列表），没有该参数无法创建一个类对象
 	{
 		//constructor to initialize shared pointers and default variables
-		//初始化共享指针和默认变量的构造函数
 		raw_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
 		cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
 		cluster_collection.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -78,7 +70,6 @@ class MovingObjectDetectionMethods
 {
 	/*
 	A class to implement the methods and constraints for moving object detection between consecutive
-	pointclouds.用于实现连续点云之间移动对象检测的方法和约束的类。
 	*/
 
 	float volume_constraint,pde_lb,pde_ub;
@@ -87,8 +78,7 @@ class MovingObjectDetectionMethods
 		MovingObjectDetectionMethods(float v_c,float p_l,float p_u):volume_constraint(v_c),pde_lb(p_l),pde_ub(p_u){}
 
 		bool volumeConstraint(pcl::PointCloud<pcl::PointXYZI>::Ptr fp, pcl::PointCloud<pcl::PointXYZI>::Ptr fc,double threshold);
-		/*checks if two corresponding clusters have nearly equal volume, using an input threshold
-		使用输入阈值检查两个相应群集的体积是否几乎相等*/
+		/*checks if two corresponding clusters have nearly equal volume, using an input threshold*/
 
 		void calculateCorrespondenceCentroid(std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> &c1,std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> &c2,pcl::PointCloud<pcl::PointXYZ>::Ptr fp, pcl::PointCloud<pcl::PointXYZ>::Ptr fc, pcl::CorrespondencesPtr mp,double delta);
 		/*cluster centroid reciprocal correspondence based on euclidian distance*/
@@ -104,13 +94,12 @@ class MovingObjectDetectionMethods
 struct MovingObjectCentroid
 {
 	/*
-	A structure for storing the properties of a moving cluster centroid.
-	一种存储移动簇质心属性的结构*/
+	A structure for storing the properties of a moving cluster centroid.*/
 	pcl::PointXYZ centroid; //centroid of moving cluster
 	int confidence,max_confidence; //moving confidence score
 
 	MovingObjectCentroid(pcl::PointXYZ c,int n_good):centroid(c),confidence(n_good+1),max_confidence(n_good+1){} 
-	//constructor构造
+	//constructor
 	bool decreaseConfidence(){confidence--;if(confidence==0){return true;}return false;} 
 	//returns true when confidence reduces to 0
 	void increaseConfidence(){if(confidence<max_confidence){confidence++;}} 
@@ -122,8 +111,7 @@ class MovingObjectRemoval
 	/*
 	A class for implementing the algorithms for detection and removal of moving objects. It includes
 	cluster tracking using confidence scores and handles the input data in a serial in and serial out manner. 
-	用于实现运动对象检测和移除算法的类。它包括使用置信度得分的群集跟踪，并以串行输入和串行输出的方式
-	处理输入数据*/
+	*/
 
 	float gp_limit,gp_leaf,bin_gap,volume_constraint,pde_lb,pde_ub,leave_off_distance,catch_up_distance,trim_x,trim_y,trim_z,ec_distance_threshold,pde_distance_threshold;
 	long min_cluster_size,max_cluster_size;
@@ -132,33 +120,28 @@ class MovingObjectRemoval
 	/*configuration variables*/
 
 	std::vector<MovingObjectCentroid> mo_vec;
-	/*vector to store the detected and confirmed moving cluster properties
-	用于存储检测到和确认的移动群集属性的向量*/
+	/*vector to store the detected and confirmed moving cluster properties*/
 
 	std::deque<pcl::CorrespondencesPtr> corrs_vec;
-	/*double ended queue to store the consequtive frame cluster correspondece results as a buffer
-	用于将Consequitive frame群集对应结果存储为缓冲区的双端队列*/
+	/*double ended queue to store the consequtive frame cluster correspondece results as a buffer*/
 
 	std::deque<std::vector<bool>> res_vec;
-	/*double ended queue to store the frame moving object detection results as a buffer
-	用于将帧移动对象检测结果存储为缓冲区的双端队列*/
+	/*double ended queue to store the frame moving object detection results as a buffer*/
 
 	/*deque is an optimized DS optimized for deletion at both begenning and end. As 'corrs_vec' and
-	'res_vec' are buffers they are better stored as deques deque是一个优化的DS，优化后可在开始和
-	结束时删除。由于“corrs_vec”和“res_vec”是缓冲区，因此最好将它们存储为deque*/
+	'res_vec' are buffers they are better stored as deques*/
 
 	boost::shared_ptr<MovingObjectDetectionCloud> ca,cb;
-	/*shared pointers for holding incoming data用于保存传入数据的共享指针*/
+	/*shared pointers for holding incoming data*/
 
 	boost::shared_ptr<MovingObjectDetectionMethods> mth;
-	/*shared pointers for detection class object检测类对象的共享指针*/
+	/*shared pointers for detection class object*/
 
 	int moving_confidence,static_confidence;
-	/*confidence score for detection聚类的置信度得分*/
+	/*confidence score for detection*/
 
 	pcl::KdTreeFLANN<pcl::PointXYZ> xyz_tree;
-	/*search tree for matching moving cluster centroids with latest cluster centroid collection
-	用于将移动的群集质心与最新的群集质心集合匹配的搜索树*/
+	/*search tree for matching moving cluster centroids with latest cluster centroid collection*/
 
 	ros::NodeHandle& nh; //for visualization and internal sync
 	#ifdef VISUALIZE
@@ -188,7 +171,6 @@ class MovingObjectRemoval
 	
 	public:
 		sensor_msgs::PointCloud2 output; //stores the pointcloud after the moving objects removal
-		//删除移动对象后存储点云
 	
 		MovingObjectRemoval(ros::NodeHandle _nh,std::string config_path,int n_bad,int n_good);
 		/*constructor: config_path is the path to the configuration file for the package*/
