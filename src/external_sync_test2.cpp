@@ -7,7 +7,7 @@ boost::shared_ptr<MovingObjectRemoval> mor;
 void moving_object_test(const sensor_msgs::PointCloud2ConstPtr& input)
 {
   clock_t begin_time = clock();
-  std::cout << "-----------------------------------------------------\n";
+  // std::cout << "-----------------------------------------------------\n";
   pcl::PCLPointCloud2 cloud;
   pcl_conversions::toPCL(*input, cloud);
 
@@ -21,14 +21,12 @@ void moving_object_test(const sensor_msgs::PointCloud2ConstPtr& input)
   le.orientation.w = 1;
 
   mor->pushRawCloudAndPose(cloud, le);
-  if (mor->filterCloud(cloud, "velodyne"))
+  if (mor->filterCloud(cloud, input->header.frame_id))
   {
     pub.publish(mor->output);
   }
-
-  std::cout << 1000.0 * (clock() - begin_time) / CLOCKS_PER_SEC << std::endl;
-
-  std::cout << "-----------------------------------------------------\n";
+  // std::cout << 1000.0 * (clock() - begin_time) / CLOCKS_PER_SEC << std::endl;
+  // std::cout << "-----------------------------------------------------\n";
 }
 
 int main(int argc, char** argv)

@@ -12,7 +12,7 @@ void moving_object_test(const sensor_msgs::PointCloud2ConstPtr& input, const nav
   pcl_conversions::toPCL(*input, cloud);
 
   mor->pushRawCloudAndPose(cloud, odm->pose.pose);
-  if (mor->filterCloud(cloud, "velodyne"))
+  if (mor->filterCloud(cloud, input->header.frame_id))
   {
     pub.publish(mor->output);
   }
