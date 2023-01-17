@@ -25,7 +25,7 @@ struct MovingObjectDetectionCloud
 	cluster_collection: stores pointcloud with all the detected clusters*/
     
 	sensor_msgs::PointCloud2 output_rgp;
-	/* 添加 */
+	/*  Add to  */
 
 	std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> clusters;
 	/*vector to store the individual detected clusters*/
@@ -50,7 +50,7 @@ struct MovingObjectDetectionCloud
 
 	MovingObjectDetectionCloud(float gp_lm,float gp_lf,float bin_g,long min_cl_s,long max_cl_s)
 	:gp_limit(gp_lm),gp_leaf(gp_lf),bin_gap(bin_g),min_cluster_size(min_cl_s),max_cluster_size(max_cl_s)
-	//初始化类成员（成员初始化列表），没有该参数无法创建一个类对象
+	// Initialize class members (member initialization list), without this parameter cannot create a class object
 	{
 		//constructor to initialize shared pointers and default variables
 		raw_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -90,7 +90,7 @@ class MovingObjectDetectionMethods
 		/*implementation of octree pointcloud change approach*/
 };
 
-//一种存储移动簇质心属性的结构
+// A structure that stores centroid attributes for moving clusters
 struct MovingObjectCentroid
 {
 	/*

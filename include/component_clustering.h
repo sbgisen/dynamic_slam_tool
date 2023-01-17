@@ -17,11 +17,11 @@ using namespace Eigen;
 
 
 
-const float GridSize = 0.2;//网格尺寸 0.2*0.2m
+const float GridSize = 0.2;// grid size 0.2*0.2m
 const float roiM = 30;
-const int numGrid = 300;//按xy平面离散为100*100网格
+const int numGrid = 300;// discretized into 100*100 grid according to xy plane
 const float picScale = 900/roiM;
-const int minClusterdNum =80;//聚类最小点数
+const int minClusterdNum =80;// The minimum number of clustering points
 
 class cluster_seed{
 private:

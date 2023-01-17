@@ -11,9 +11,9 @@ output_fid:velodyne
 debug_fid:velodyne
 
 #Clustering parameters
-ec_distance_threshold:0.21 欧式距离聚类时近邻搜索半径0.21
-min_cluster_size:40 最小聚类点数
-max_cluster_size:35000 最大聚类点数35000->35000
+ec_distance_threshold:0.21 //Nearest neighbor search radius in Euclidean distance clustering(0.21)
+min_cluster_size:40 //Minimum number of cluster points(40)
+max_cluster_size:35000 //Maximum number of cluster points(35000)
 
 #Ground plane removal voxel covariance
 gp_leaf:0.1
@@ -31,9 +31,9 @@ pde_ub:0.5
 pde_distance_threshold:0.15
 
 #Octree pointcloud chance method parameters (needed when method_choice is 2)
-opc_normalization_factor:15//其值越大，动态物体更容易被识别
+opc_normalization_factor:15//The larger the value, the easier it is for dynamic objects to be recognized
 
 #Cluster tracking prameters
-volume_constraint:0.3 //控制前后两帧各对应聚类点云体积是否相近,其值越大，容忍体积差距越大
-leave_off_distance:0.5 //影响置信度更新时质心动静判断
-catch_up_distance:0.3//影响更新缓存时质心匹配
+volume_constraint:0.3 //Controls whether the corresponding clustering point cloud volumes of the two frames before and after are similar. The larger the value, the larger the tolerance volume difference
+leave_off_distance:0.5 //Affects the movement and static judgment of the center of mass when the confidence level is updated
+catch_up_distance:0.3//Affects centroid matching when updating the cache
