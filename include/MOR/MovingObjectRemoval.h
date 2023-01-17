@@ -6,7 +6,6 @@ typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2
 //'xyz' -> refers to the variable with name xyz
 //shared pointers are used for autometic garbage collection
 
-
 struct MovingObjectDetectionCloud
 {
 	/*
@@ -14,10 +13,10 @@ struct MovingObjectDetectionCloud
 	pointcloud pre-processing, ground plane removal and euclidian clustering. It aslo stores the
 	moving object detection results after computation.
 	*/
+
 	float gp_limit,gp_leaf,bin_gap;
 	long min_cluster_size,max_cluster_size;
 	/*configuration variables*/
-    
 
 	pcl::PointCloud<pcl::PointXYZI>::Ptr raw_cloud,cloud,cluster_collection;
 	/*raw_cloud: stores the pointcloud after trimming it in x,y,z axis
@@ -25,7 +24,6 @@ struct MovingObjectDetectionCloud
 	cluster_collection: stores pointcloud with all the detected clusters*/
     
 	sensor_msgs::PointCloud2 output_rgp;
-	/*  Add to  */
 
 	std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> clusters;
 	/*vector to store the individual detected clusters*/
@@ -34,7 +32,6 @@ struct MovingObjectDetectionCloud
 	/*stores the centroid of all the detected clusters. indexing is same as 'clusters'*/
 
 	std::vector<pcl::PointIndices> cluster_indices;
-	
 	/*vector to store the indices of all the detected clusters in 'cloud'*/
 
 	pcl::IndicesConstPtr gp_indices;
@@ -62,14 +59,13 @@ struct MovingObjectDetectionCloud
 	void groundPlaneRemoval(float,float,float); //ground plane removal with predefined dimensions
 	void groundPlaneRemoval(float,float); //ground plane removal using voxel covariance and binning
 	void computeClusters(float,std::string); //computes the euclidian clustering with an input distance threshold
-
-	
 };
 
 class MovingObjectDetectionMethods
 {
 	/*
 	A class to implement the methods and constraints for moving object detection between consecutive
+	pointclouds.
 	*/
 
 	float volume_constraint,pde_lb,pde_ub;
@@ -94,16 +90,14 @@ class MovingObjectDetectionMethods
 struct MovingObjectCentroid
 {
 	/*
-	A structure for storing the properties of a moving cluster centroid.*/
+	A structure for storing the properties of a moving cluster centroid.
+	*/
 	pcl::PointXYZ centroid; //centroid of moving cluster
 	int confidence,max_confidence; //moving confidence score
 
-	MovingObjectCentroid(pcl::PointXYZ c,int n_good):centroid(c),confidence(n_good+1),max_confidence(n_good+1){} 
-	//constructor
-	bool decreaseConfidence(){confidence--;if(confidence==0){return true;}return false;} 
-	//returns true when confidence reduces to 0
-	void increaseConfidence(){if(confidence<max_confidence){confidence++;}} 
-	//increases confidence till 'max_confidence'
+	MovingObjectCentroid(pcl::PointXYZ c,int n_good):centroid(c),confidence(n_good+1),max_confidence(n_good+1){} //constructor
+	bool decreaseConfidence(){confidence--;if(confidence==0){return true;}return false;} //returns true when confidence reduces to 0
+	void increaseConfidence(){if(confidence<max_confidence){confidence++;}} //increases confidence till 'max_confidence'
 };
 
 class MovingObjectRemoval
@@ -171,7 +165,6 @@ class MovingObjectRemoval
 	
 	public:
 		sensor_msgs::PointCloud2 output; //stores the pointcloud after the moving objects removal
-	
 		MovingObjectRemoval(ros::NodeHandle _nh,std::string config_path,int n_bad,int n_good);
 		/*constructor: config_path is the path to the configuration file for the package*/
 

@@ -30,9 +30,7 @@
 #include <fstream>
 #include <ctime>
 #include <time.h>
-
 #include "DBSCAN_kdtree.h"
-
 using namespace std;
 
 #define VISUALIZE 
