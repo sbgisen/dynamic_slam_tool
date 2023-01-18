@@ -545,10 +545,10 @@ MovingObjectDetectionMethods::getPointDistanceEstimateVector(std::vector<pcl::Po
 }
 
 // 0.initialization list
-MovingObjectRemoval::MovingObjectRemoval(ros::NodeHandle nh_, std::string config_path, int n_bad, int n_good)
+MovingObjectRemoval::MovingObjectRemoval(ros::NodeHandle nh_, int n_bad, int n_good)
   : nh(nh_), moving_confidence(n_bad), static_confidence(n_good)
 {
-  setVariables(config_path);
+  readParams(nh_);
 
 /*ROS setup*/
 #ifdef VISUALIZE
@@ -556,10 +556,10 @@ MovingObjectRemoval::MovingObjectRemoval(ros::NodeHandle nh_, std::string config
   debug_pub = nh.advertise<sensor_msgs::PointCloud2>(debug_topic, 10);
   marker_pub = nh.advertise<visualization_msgs::Marker>(marker_topic, 10);
   marker1_pub = nh.advertise<visualization_msgs::Marker>("static01", 10);
-  marker2_pub = nh.advertise<visualization_msgs::Marker>("All_cluster", 10);
+  marker2_pub = nh.advertise<visualization_msgs::Marker>("all_cluster", 10);
   marker3_pub = nh.advertise<visualization_msgs::Marker>("distance", 10);
   marker4_pub = nh.advertise<visualization_msgs::Marker>("velocity", 1);
-  gpr = nh.advertise<sensor_msgs::PointCloud2>("aaa", 10);
+  gpr = nh.advertise<sensor_msgs::PointCloud2>("gpr", 10);
 
 #endif
 
@@ -868,7 +868,6 @@ bool MovingObjectRemoval::filterCloud(pcl::PCLPointCloud2& out_cloud, std::strin
       //---------------------------------------------------------------------
       movingclusterid.push_back(pointIdxNKNSearch[0]);
       //---------------------------------------------------------------------
-
       for (int j = 0; j < cb->cluster_indices[pointIdxNKNSearch[0]].indices.size(); j++)
       {
         /*add the indices of the moving clusters in 'cloud' to 'moving_points'*/
@@ -1070,171 +1069,56 @@ void MovingObjectRemoval::showV(pcl::PointCloud<pcl::PointXYZ>::Ptr& c1, pcl::Po
   }
 }
 
-void MovingObjectRemoval::setVariables(std::string config_file_path)
+// 0.1 set variable
+void MovingObjectRemoval::readParams(ros::NodeHandle& main_nh)
 {
-  std::fstream config;
-  config.open(config_file_path);
-
-  if (!config.is_open())
-  {
-    std::cout << "Couldnt open the file\n";
-    exit(0);
-  }  // open config file
-
-  std::string line, parm1, parm2;     // required string variables
-  while (std::getline(config, line))  // extract lines one by one
-  {
-    if (line[0] == '#' || line.length() < 3)
-    {
-      continue;
-    }
-    parm1 = "";
-    parm2 = "";
-    bool flag = true;
-    for (int ind = 0; ind < line.length(); ind++)
-    {
-      if (line[ind] == ':')
-      {
-        flag = false;
-        continue;
-      }
-      if (flag)
-      {
-        parm1.push_back(line[ind]);
-      }
-      else
-      {
-        parm2.push_back(line[ind]);
-      }
-    }  // extract lines "name_of_variable:value"
-
-    std::cout << parm1 << ":";
-    if (parm1 == "gp_limit")
-    {
-      gp_limit = std::stof(parm2);
-      std::cout << gp_limit;
-    }
-    else if (parm1 == "gp_leaf")
-    {
-      gp_leaf = std::stof(parm2);
-      std::cout << gp_leaf;
-    }
-    else if (parm1 == "bin_gap")
-    {
-      bin_gap = std::stof(parm2);
-      std::cout << bin_gap;
-    }
-    else if (parm1 == "min_cluster_size")
-    {
-      min_cluster_size = std::stol(parm2);
-      std::cout << min_cluster_size;
-    }
-    else if (parm1 == "max_cluster_size")
-    {
-      max_cluster_size = std::stol(parm2);
-      std::cout << max_cluster_size;
-    }
-    else if (parm1 == "volume_constraint")
-    {
-      volume_constraint = std::stof(parm2);
-      std::cout << volume_constraint;
-    }
-    else if (parm1 == "pde_lb")
-    {
-      pde_lb = std::stof(parm2);
-      std::cout << pde_lb;
-    }
-    else if (parm1 == "pde_ub")
-    {
-      pde_ub = std::stof(parm2);
-      std::cout << pde_ub;
-    }
-    else if (parm1 == "output_topic")
-    {
-      output_topic = parm2;
-      std::cout << output_topic;
-    }
-    else if (parm1 == "debug_topic")
-    {
-      debug_topic = parm2;
-      std::cout << debug_topic;
-    }
-    else if (parm1 == "marker_topic")
-    {
-      marker_topic = parm2;
-      std::cout << marker_topic;
-    }
-    else if (parm1 == "input_pointcloud_topic")
-    {
-      input_pointcloud_topic = parm2;
-      std::cout << input_pointcloud_topic;
-    }
-    else if (parm1 == "input_odometry_topic")
-    {
-      input_odometry_topic = parm2;
-      std::cout << input_odometry_topic;
-    }
-    else if (parm1 == "output_fid")
-    {
-      output_fid = parm2;
-      std::cout << output_fid;
-    }
-    else if (parm1 == "debug_fid")
-    {
-      debug_fid = parm2;
-      std::cout << debug_fid;
-    }
-    else if (parm1 == "leave_off_distance")
-    {
-      leave_off_distance = std::stof(parm2);
-      std::cout << leave_off_distance;
-    }
-    else if (parm1 == "catch_up_distance")
-    {
-      catch_up_distance = std::stof(parm2);
-      std::cout << catch_up_distance;
-    }
-    else if (parm1 == "trim_x")
-    {
-      trim_x = std::stof(parm2);
-      std::cout << trim_x;
-    }
-    else if (parm1 == "trim_y")
-    {
-      trim_y = std::stof(parm2);
-      std::cout << trim_y;
-    }
-    else if (parm1 == "trim_z")
-    {
-      trim_z = std::stof(parm2);
-      std::cout << trim_z;
-    }
-    else if (parm1 == "ec_distance_threshold")
-    {
-      ec_distance_threshold = std::stof(parm2);
-      std::cout << ec_distance_threshold;
-    }
-    else if (parm1 == "opc_normalization_factor")
-    {
-      opc_normalization_factor = std::stof(parm2);
-      std::cout << opc_normalization_factor;
-    }
-    else if (parm1 == "pde_distance_threshold")
-    {
-      pde_distance_threshold = std::stof(parm2);
-      std::cout << pde_distance_threshold;
-    }
-    else if (parm1 == "method_choice")
-    {
-      method_choice = std::stoi(parm2);
-      std::cout << method_choice;
-    }
-    else
-    {
-      std::cout << "Invalid parameter found in config file\n";
-      exit(0);
-    }
-    std::cout << std::endl;
-    /*assign values to the variables based on name*/
-  }
+  main_nh.param<float>("gp_limit", gp_limit, -0.3);
+  main_nh.param<float>("gp_leaf", gp_leaf, 0.1);
+  main_nh.param<float>("bin_gap", bin_gap, 10.0);
+  main_nh.param<int>("min_cluster_size", min_cluster_size, 40);
+  main_nh.param<int>("max_cluster_size", max_cluster_size, 35000);
+  main_nh.param<float>("volume_constraint", volume_constraint, 0.3);
+  main_nh.param<float>("pde_lb", pde_lb, 0.005);
+  main_nh.param<float>("pde_ub", pde_ub, 0.5);
+  main_nh.param<std::string>("output_topic", output_topic, "/velodyne/points_static");
+  main_nh.param<std::string>("debug_topic", debug_topic, "check");
+  main_nh.param<std::string>("marker_topic", marker_topic, "bbox");
+  main_nh.param<std::string>("input_pointcloud_topic", input_pointcloud_topic, "/velodyne_points");
+  main_nh.param<std::string>("input_odometry_topic", input_odometry_topic, "/odom");
+  main_nh.param<std::string>("output_fid", output_fid, "velodyne");
+  main_nh.param<std::string>("debug_fid", debug_fid, "velodyne");
+  main_nh.param<float>("leave_off_distance", leave_off_distance, 0.5);
+  main_nh.param<float>("catch_up_distance", catch_up_distance, 0.3);
+  main_nh.param<float>("trim_x", trim_x, 10);
+  main_nh.param<float>("trim_y", trim_y, 10);
+  main_nh.param<float>("trim_z", trim_z, 6);
+  main_nh.param<float>("ec_distance_threshold", ec_distance_threshold, 0.21);
+  main_nh.param<int>("opc_normalization_factor", opc_normalization_factor, 6);
+  main_nh.param<float>("pde_distance_threshold", pde_distance_threshold, 0.15);
+  main_nh.param<int>("method_choice", method_choice, 2);
+  std::cout << "MovingObjectRemoval::readParams" << std::endl;
+  std::cout << "gp_limit:" << gp_limit << std::endl;
+  std::cout << "gp_leaf:" << gp_leaf << std::endl;
+  std::cout << "bin_gap:" << bin_gap << std::endl;
+  std::cout << "min_cluster_size:" << min_cluster_size << std::endl;
+  std::cout << "max_cluster_size:" << max_cluster_size << std::endl;
+  std::cout << "volume_constraint:" << volume_constraint << std::endl;
+  std::cout << "pde_lb:" << pde_lb << std::endl;
+  std::cout << "pde_ub:" << pde_ub << std::endl;
+  std::cout << "output_topic:" << output_topic << std::endl;
+  std::cout << "debug_topic:" << debug_topic << std::endl;
+  std::cout << "marker_topic:" << marker_topic << std::endl;
+  std::cout << "input_pointcloud_topic:" << input_pointcloud_topic << std::endl;
+  std::cout << "input_odometry_topic:" << input_odometry_topic << std::endl;
+  std::cout << "output_fid:" << output_fid << std::endl;
+  std::cout << "debug_fid:" << debug_fid << std::endl;
+  std::cout << "leave_off_distance:" << leave_off_distance << std::endl;
+  std::cout << "catch_up_distance:" << catch_up_distance << std::endl;
+  std::cout << "trim_x:" << trim_x << std::endl;
+  std::cout << "trim_y:" << trim_y << std::endl;
+  std::cout << "trim_z:" << trim_z << std::endl;
+  std::cout << "ec_distance_threshold:" << ec_distance_threshold << std::endl;
+  std::cout << "opc_normalization_factor:" << opc_normalization_factor << std::endl;
+  std::cout << "pde_distance_threshold:" << pde_distance_threshold << std::endl;
+  std::cout << "method_choice:" << method_choice << std::endl;
 }

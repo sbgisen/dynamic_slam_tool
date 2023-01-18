@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- -*- mode: XML -*- -->
 <launch>
-   <!-- <include file="$(find velodyne_pointcloud)/launch/points.launch" /> -->
-   <node
-	name= "dynamic_slam_tool" pkg= "dynamic_slam_tool" type="mov_e" output= "screen" required = "true">
-
-
-   </node>
+   <rosparam command="load" ns="dynamic_slam_tool" file="$(find dynamic_slam_tool)/config/velodyne_vlp16.yaml"/>
+   <node	name= "dynamic_slam_tool" pkg= "dynamic_slam_tool" type="mov_e" output= "screen" required = "true"/>
    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find dynamic_slam_tool)/rviz/output.rviz"/>
-
-   <!--node pkg="tf" type="static_transform_publisher" name="inte_navi_velodyne_broadcaster" args="0.0 0.0 0.0 0.0 0.0 0.0  inte_navi velodyne 100" />
-   <node pkg="tf" type="static_transform_publisher" name="velodyne_rslidar_broadcaster" args="0.0 0.0 0.0 0.0 0.0 0.0  velodyne rslidar 100" /-->
 </launch>
