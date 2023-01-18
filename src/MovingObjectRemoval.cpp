@@ -299,7 +299,7 @@ void MovingObjectDetectionCloud::groundPlaneRemoval(float x, float y)
   /*search for the bin holding highest number of points. it is supposed to be the dominating
   plane surface*/
 
-  boost::shared_ptr<std::vector<int>> gp_i;
+  boost::shared_ptr<std::vector<int>> gp_i(new std::vector<int>);
   pcl::PointIndicesPtr ground_plane(new pcl::PointIndices);
   for (int i = 0; i < bins[tracked_key].size(); i++)
   {
@@ -317,6 +317,7 @@ void MovingObjectDetectionCloud::groundPlaneRemoval(float x, float y)
   extract.setNegative(true);
   extract.filter(*cloud);
   /*filter the pointcloud by removing ground plane*/
+  pcl::toROSMsg(*cloud, output_rgp);
 }
 
 // 3. Calculate the clustering in the latest point cloud
