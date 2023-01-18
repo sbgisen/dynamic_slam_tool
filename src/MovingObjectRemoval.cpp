@@ -211,10 +211,14 @@ void MovingObjectDetectionCloud::groundPlaneRemoval(float x, float y)
   /*Voxel covariance based ground plane removal.*/
 
   pcl::PassThrough<pcl::PointXYZI> pass;
+  if (raw_cloud->size() == 0)
+    return;
   pass.setInputCloud(raw_cloud);
   pass.setFilterFieldName("x");
   pass.setFilterLimits(-x, x);
   pass.filter(*raw_cloud);
+  if (raw_cloud->size() == 0)
+    return;
   pass.setInputCloud(raw_cloud);
   pass.setFilterFieldName("y");
   pass.setFilterLimits(-y, y);
@@ -227,11 +231,15 @@ void MovingObjectDetectionCloud::groundPlaneRemoval(float x, float y)
   /*pointcloud variables*/
 
   pcl::VoxelGrid<pcl::PointXYZI> vg;  // voxelgrid filter to downsample input cloud
+  if (raw_cloud->size() == 0)
+    return;
   vg.setInputCloud(raw_cloud);
   vg.setLeafSize(gp_leaf, gp_leaf, gp_leaf);
   vg.filter(*dsc);  //'dsc' stores the downsampled pointcloud
 
   pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr xyzi_tree(new pcl::KdTreeFLANN<pcl::PointXYZI>);
+  if (raw_cloud->size() == 0)
+    return;
   xyzi_tree->setInputCloud(raw_cloud);  // kdtree to search for NN of the down sampled cloud points
 
   std::vector<std::vector<int>> index_bank;
@@ -242,7 +250,6 @@ void MovingObjectDetectionCloud::groundPlaneRemoval(float x, float y)
     std::vector<int> ind;
     std::vector<float> dist;
     if (xyzi_tree->radiusSearch(dsc->points[i], gp_leaf, ind, dist) > 0)
-    // if(xyzi_tree->nearestKSearch(dsc->points[i], 20, ind, dist) > 0 )
     {
       /*this can be radius search or nearest K search. most suitable one should be considered
       according to the results after experiments*/
@@ -261,8 +268,10 @@ void MovingObjectDetectionCloud::groundPlaneRemoval(float x, float y)
         pcl::compute3DCentroid(temp, cp);  // calculate centroid
         Eigen::Matrix3f covariance_matrix;
         pcl::computeCovarianceMatrix(temp, cp, covariance_matrix);  // calculate 3D covariance matrix(3x3)
-        if (fabs(covariance_matrix(0, 2)) < 0.001 && fabs(covariance_matrix(1, 2)) < 0.001 &&
-            fabs(covariance_matrix(2, 2)) < 0.001)
+        double covariance_threshold = 0.001;
+        if (fabs(covariance_matrix(0, 2)) < covariance_threshold &&
+            fabs(covariance_matrix(1, 2)) < covariance_threshold &&
+            fabs(covariance_matrix(2, 2)) < covariance_threshold)
         {
           /*
           xx|xy|xz
@@ -312,6 +321,8 @@ void MovingObjectDetectionCloud::groundPlaneRemoval(float x, float y)
   gp_indices = gp_i;
 
   pcl::ExtractIndices<pcl::PointXYZI> extract;
+  if (raw_cloud->size() == 0)
+    return;
   extract.setInputCloud(raw_cloud);
   extract.setIndices(ground_plane);
   extract.setNegative(true);
@@ -451,7 +462,8 @@ void MovingObjectDetectionMethods::calculateCorrespondenceCentroid(
     double delta)
 {
   /*finds the correspondence among the cluster centroids between two consecutive frames*/
-
+  if (fp->size() == 0 || fc->size() == 0)
+    return;
   pcl::CorrespondencesPtr ufmp(new pcl::Correspondences());
 
   pcl::registration::CorrespondenceEstimation<pcl::PointXYZ, pcl::PointXYZ> corr_est;
@@ -491,17 +503,20 @@ MovingObjectDetectionMethods::getClusterPointcloudChangeVector(std::vector<pcl::
   {
     pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZI> octree_cd(
         resolution);  // resolution The side length of the octree voxel
-    octree_cd.setInputCloud(c1[(*mp)[j].index_query]);
-    octree_cd.addPointsFromInputCloud();
-    octree_cd.switchBuffers();  // swap octree cache
-    octree_cd.setInputCloud(c2[(*mp)[j].index_match]);
-    octree_cd.addPointsFromInputCloud();
+    if (c1[(*mp)[j].index_query]->size() > 0 && c2[(*mp)[j].index_match]->size() > 0)
+    {
+      octree_cd.setInputCloud(c1[(*mp)[j].index_query]);
+      octree_cd.addPointsFromInputCloud();
+      octree_cd.switchBuffers();  // swap octree cache
+      octree_cd.setInputCloud(c2[(*mp)[j].index_match]);
+      octree_cd.addPointsFromInputCloud();
 
-    std::vector<int> newPointIdxVector;
-    /*stores the indices of the new points appearing in the destination cluster*/
+      std::vector<int> newPointIdxVector;
+      /*stores the indices of the new points appearing in the destination cluster*/
 
-    octree_cd.getPointIndicesFromNewVoxels(newPointIdxVector);  // Compare to get the index of the new point
-    changed.push_back(newPointIdxVector.size());
+      octree_cd.getPointIndicesFromNewVoxels(newPointIdxVector);  // Compare to get the index of the new point
+      changed.push_back(newPointIdxVector.size());
+    }
   }
   return changed;
   /*return the movement scores*/
@@ -724,8 +739,8 @@ void MovingObjectRemoval::pushRawCloudAndPose(pcl::PCLPointCloud2& in_cloud, geo
   pcl::fromPCLPointCloud2(in_cloud, *(cb->raw_cloud));  // load latest pointcloud
   tf::poseMsgToTF(pose, cb->ps);                        // load latest pose
 
-  cb->groundPlaneRemoval(trim_x, trim_y, trim_z);  // ground plane removal (hard coded)
-  // cb->groundPlaneRemoval(trim_x,trim_y); //groud plane removal (voxel covariance)
+  // cb->groundPlaneRemoval(trim_x, trim_y, trim_z);  // ground plane removal (hard coded)
+  cb->groundPlaneRemoval(trim_x, trim_y);  // groud plane removal (voxel covariance)
   gpr.publish(cb->output_rgp);
 
   cb->computeClusters(ec_distance_threshold, "single_cluster");
@@ -838,7 +853,8 @@ bool MovingObjectRemoval::filterCloud(pcl::PCLPointCloud2& out_cloud, std::strin
 {
   /*removes the moving objects from the latest pointcloud and puts the filtered cloud in 'output'.
   removes the static cluster centroids from 'mo_vec'*/
-
+  if (cb->centroid_collection->size() == 0)
+    return false;
   xyz_tree.setInputCloud(cb->centroid_collection);
   /*use kdtree for searching the moving cluster centroid within 'centroid_collection' of the
   latest frame*/
@@ -911,6 +927,8 @@ bool MovingObjectRemoval::filterCloud(pcl::PCLPointCloud2& out_cloud, std::strin
 
   pcl::PointCloud<pcl::PointXYZI>::Ptr f_cloud(new pcl::PointCloud<pcl::PointXYZI>);
   pcl::ExtractIndices<pcl::PointXYZI> extract;
+  if (cb->cloud->size() == 0)
+    return false;
   extract.setInputCloud(cb->cloud);
   extract.setIndices(moving_points);
   extract.setNegative(true);
