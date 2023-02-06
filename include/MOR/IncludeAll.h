@@ -12,6 +12,7 @@
 #include <pcl/registration/correspondence_estimation.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/kdtree/kdtree.h>
+#include <pcl/search/kdtree.h>	
 #include <pcl/filters/passthrough.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
@@ -28,6 +29,9 @@
 #include <string>
 #include <fstream>
 #include <ctime>
+#include <time.h>
+#include "DBSCAN_kdtree.h"
+using namespace std;
 
 #define VISUALIZE 
 /*This defination flag helps to visualize the moving cluster and individual clusters detected

@@ -1,4 +1,6 @@
 #include "MOR/IncludeAll.h"
+#include "component_clustering.h"
+#include "DBSCAN_clustering.h"
 typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, nav_msgs::Odometry> MySyncPolicy; //for message synchronization
 
 //'xyz' -> refers to the variable with name xyz
@@ -20,6 +22,8 @@ struct MovingObjectDetectionCloud
 	/*raw_cloud: stores the pointcloud after trimming it in x,y,z axis
 	cloud: stores pointcloud after ground plane removal
 	cluster_collection: stores pointcloud with all the detected clusters*/
+    
+	sensor_msgs::PointCloud2 output_rgp;
 
 	std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> clusters;
 	/*vector to store the individual detected clusters*/
@@ -39,9 +43,11 @@ struct MovingObjectDetectionCloud
 	tf::Pose ps;
 	/*stores the 6D pose at which the pointloud was captured.*/
 	
-	bool init;//hepls in synchronization
+	bool init;//helps in synchronization
 
-	MovingObjectDetectionCloud(float gp_lm,float gp_lf,float bin_g,long min_cl_s,long max_cl_s):gp_limit(gp_lm),gp_leaf(gp_lf),bin_gap(bin_g),min_cluster_size(min_cl_s),max_cluster_size(max_cl_s)
+	MovingObjectDetectionCloud(float gp_lm,float gp_lf,float bin_g,long min_cl_s,long max_cl_s)
+	:gp_limit(gp_lm),gp_leaf(gp_lf),bin_gap(bin_g),min_cluster_size(min_cl_s),max_cluster_size(max_cl_s)
+	// Initialize class members (member initialization list), without this parameter cannot create a class object
 	{
 		//constructor to initialize shared pointers and default variables
 		raw_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -80,6 +86,7 @@ class MovingObjectDetectionMethods
 		/*implementation of octree pointcloud change approach*/
 };
 
+// A structure that stores centroid attributes for moving clusters
 struct MovingObjectCentroid
 {
 	/*
@@ -132,7 +139,7 @@ class MovingObjectRemoval
 
 	ros::NodeHandle& nh; //for visualization and internal sync
 	#ifdef VISUALIZE
-	ros::Publisher pub,debug_pub,marker_pub; //for visualization
+	ros::Publisher pub,debug_pub,marker_pub,marker1_pub,marker2_pub,marker3_pub,marker4_pub,gpr; //for visualization
 	#endif
 	#ifdef INTERNAL_SYNC //internal synchronization implementation
 	message_filters::Subscriber<sensor_msgs::PointCloud2> pc_sub;
@@ -154,7 +161,8 @@ class MovingObjectRemoval
 
 	void pushCentroid(pcl::PointXYZ pt);
 	/*function to add the centroid of a new moving cluster to 'mo_vec'*/
-
+	int compare(int a,std::vector<int>b);
+	
 	public:
 		sensor_msgs::PointCloud2 output; //stores the pointcloud after the moving objects removal
 		MovingObjectRemoval(ros::NodeHandle _nh,std::string config_path,int n_bad,int n_good);
@@ -162,6 +170,11 @@ class MovingObjectRemoval
 
 		void pushRawCloudAndPose(pcl::PCLPointCloud2 &cloud,geometry_msgs::Pose pose);
 		/*Input: function to push new data into the running alogorithm*/
+
+		void showDistance(pcl::PointCloud<pcl::PointXYZ>::Ptr &c2);
+
+		void showV(pcl::PointCloud<pcl::PointXYZ>::Ptr &c1,pcl::PointCloud<pcl::PointXYZ>::Ptr &c2,
+		pcl::CorrespondencesPtr fmp,std::vector<bool> &res_cb);
 
 		bool filterCloud(pcl::PCLPointCloud2 &cloud,std::string f_id);
 		/*Output: function to get the filtered cloud after moving object removal*/
