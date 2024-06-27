@@ -1,0 +1,39 @@
+#Detection algorithm choice
+method_choice: 2
+
+#ROS parameters
+output_topic: /velodyne/points_static
+debug_topic: check
+marker_topic: bbox
+input_pointcloud_topic: /velodyne/points_raw
+input_odometry_topic: /odometry/local
+output_fid: velodyne
+debug_fid: velodyne
+
+#Clustering parameters
+ec_distance_threshold: 0.21 #Euclidean distance clustering when the nearest neighbor search radius
+min_cluster_size: 80 #Minimum number of points of collection
+max_cluster_size: 1600 #Maximum number of collection points
+
+#Ground plane removal voxel covariance
+gp_leaf: 0.1
+bin_gap: 10
+
+#Ground plane removal hard coded
+gp_limit: -0.4
+trim_x: 200
+trim_y: 200
+trim_z: 200
+
+#Point distance estimate method parameters (needed when method_choice is 1)
+pde_lb: 0.005
+pde_ub: 0.5
+pde_distance_threshold: 0.15
+
+#Octree pointcloud chance method parameters (needed when method_choice is 2)
+opc_normalization_factor: 6 #The larger the value, the easier it is to recognize dynamic objects
+
+#Cluster tracking prameters
+volume_constraint: 0.6 #The larger the value, the larger the tolerance volume difference.
+leave_off_distance: 0.6 #Determination of center-of-mass motion when affecting confidence update
+catch_up_distance: 0.3 #Affects prime matching when updating cache
